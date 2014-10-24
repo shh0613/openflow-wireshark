@@ -1,0 +1,104 @@
+ofdissector
+===========
+
+OpenFlow 1.0, 1.1, 1.2, 1.3的Wireshark解析器
+基于Nick Bastin的[ng-of-dissector]完成的 ,
+不同点: 新增支持OpenFlow 1.0，修订OpenFlow 1.1为统一格式，补充完成其他协议的解析
+修改者：suhuihuang@ruijie.com.cn
+
+编译与安装
+=============
+
+依赖
+------------
+ * Visual studio >= 2008
+ * Cygwin
+ * scons
+
+搭建Wireshark开发环境
+------------
+1 下载安装Cygwin
+    下载地址：http://www.cygwin.com/setup.exe
+    介绍：cygwin是一个在windows平台上运行的unix模拟环境,提供了基于Win32的unix工具集，
+    是cygnus solutions公司开发的自由软件。它对于学习unix/linux操作环境，或者从unix到windows的应用程序移植，
+    或者进行某些特殊的开发工作，尤其是使用gnu工具集在windows上进行嵌入式系统开发，非常有用。
+    安装cygwin时候，在”SelectPackages”页面时候，选择如下几个包：
+        Archive/unzip
+        Devel/bison
+        Devel/flex
+        Interpreters/perl
+        Utils/patch
+        Web/wget
+    设置cygwin环境变量(Path: D:\cygwin\bin)
+
+2 下载安装Python
+    下载地址： http://python.org/download/ (本人使用版本2.7)
+    介绍：使用Python方便用户对Wireshark进行扩展，本人没使用Python扩展过；
+    除此之外，Wireshark支持使用LUA对其解析器进行扩展。
+    官网推荐安装到python安装默认C盘
+    设置python环境变量(Path: C:\Python27)
+ 
+3 安装Winpcap
+    下载地址: http://www.winpcap.org/install/default.htm
+ 
+4 Wireshark编译所需的库
+    根据Wireshark的版本下载对应的库文件(本人采用trunk - 1.8，大于1.8的统一到tags目录下);
+    路径为：http://anonsvn.wireshark.org/wireshark-win32-libs/
+    注意:下载下来的文件是压缩包,不要解压！放在同一个文件夹内,如: wireshark-win32-libs,
+    下面配置WIRESHARK_LIBS需要用到这路径！
+ 
+5 下载WireShark,配置WireShark
+    下载地址：http://www.wireshark.org/download.html(本人采用版本1.8.14; 1.6以上的版本可以用VS进行调试)
+    配置WireShark目录的config.nmake文件： 
+        (1).WIRESHARK_LIBS，设置编译WireShark所需的库所在的目录。
+        (2).PROGRAM_FILES，设置本机程序安装目录，默认即可。     
+        (3).MSVC_VARIANT，因为我使用VS2010编译，所以这里将值为MSVC2010的那一行前的#去掉，
+           其余MSVC_VARIANT项行首全部加上#注释掉。         
+        (4).CYGWIN_PATH，将其设置为Cygwin的bin目录，例如D:\Cygwin\bin。     
+        (5).MSVCR_DLL，如果VS安装在D盘，请在这里相应的地方用绝对路径表示，
+            而不要去修改前面的PROGRAM_FILES，否则会出现意想不到的错误。（也可采用默认）
+6. 编译Wireshark, 主要是需要config.h和epan/libwireshark.lib文件
+   nmake -f Makefile.nmake verify_tools
+   nmake -f Makefile.nmake setup
+   nmake -f Makefile.nmake distclean
+   nmake -f Makefile.nmake all
+    
+6 安装scons
+    下载地址http://www.scons.org/
+    选择download-Production(2.3.0) --> windows进行下载并安装。
+    为了调用方便，将scons加入path环境变量。
+    在path环境变量中加入C:\Python27\与C:\Python27\Scripts(python的安装路径)。
+    还需要在系统变量中加入WIRESHARK环境变量，值为步骤5生成的wireshark文件夹，
+    设置完成需要重启计算机方可生效。
+    
+编译
+------------
+1. 修改源码路径下 ofdissector-master\src\Sconstruct，
+   将其中include与lib的路径
+    lib指的是步骤4得到的wireshark-win32-libs
+    include指的是Wireshark源码路径
+   如下代码所示。
+      wireshark_lib = "D:\TaskRef\SDN\Wireshark\Wireshark-win32-libs"
+      wireshark_include = "D:\TaskRef\SDN\Wireshark\wireshark-1.8.14"
+
+2. 修改步骤5下载的Wireshark目录下的config.h文件，注释掉下面这段话。
+      /* Check for the required _MSC_VER */  
+    //#if MSC_VER_REQUIRED != _MSC_VER  
+    //#define WS_TO_STRING2(x) #x  
+    //#define WS_TO_STRING(x) WS_TO_STRING2(x)  
+    //#pragma message( "_MSC_VER is:" WS_TO_STRING(_MSC_VER) " but required is:" WS_TO_STRING(MSC_VER_REQUIRED) )  
+    //#error Your MSVC_VARIANT setting in config.nmake doesn't match the MS compiler version!  
+    //#endif 
+
+2. cmd进入ofdissector\src目录下，直接执行scons
+
+3. 拷贝openflow.dll到wireshark的插件(plugins)目录 
+    
+4. 运行Wireshark，填充规律规则过滤，例如：
+    * `of13.data`: 表示所有OpenFlow 1.3的所有消息
+    * `of12.type == 10`: 表示OpenFlow 1.2的packet-in消息
+    * `of13.ofp_packet_in`: 表示OpenFlow 1.3的packet-in消息
+
+来源
+---------------
+[ng-of-dissector]: https://bitbucket.org/barnstorm/ng-of-dissector
