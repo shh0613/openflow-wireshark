@@ -779,8 +779,8 @@ void DissectorContext::dissect_ofp_aggregate_stats(proto_tree *tree)
         sizeof(struct ofp_aggregate_stats_reply));
     ADD_CHILD(flow_aggre_stat_tree, "ofp_aggregate_stats_reply.packet_count", 8);
     ADD_CHILD(flow_aggre_stat_tree, "ofp_aggregate_stats_reply.byte_count", 8);
-    ADD_CHILD(flow_aggre_stat_tree, "ofp_aggregate_stats_reply.flow_count", 8);
-    ADD_CHILD(flow_aggre_stat_tree, "padding", 6);
+    ADD_CHILD(flow_aggre_stat_tree, "ofp_aggregate_stats_reply.flow_count", 4);
+    ADD_CHILD(flow_aggre_stat_tree, "padding", 4);
 }
 
 void DissectorContext::dissect_ofp_port_stats_request(proto_tree *tree)
